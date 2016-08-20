@@ -1,0 +1,13 @@
+{
+	"type": "Collection",
+	"properties": {
+		"lastName": {
+			"name": "lastName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "lastName",
+			"order": 0
+		}
+	}
+}

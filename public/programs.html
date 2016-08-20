@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout/3.4.0/knockout.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout.mapping/2.4.1/knockout.mapping-latest.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="dpd.js"></script>
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-static-top">
+  <div class="container-fluid">
+    <div class="navbar-header" style="width: 100%; padding-right: 20px;">
+     <a class="navbar-brand" href="#">Enrollment Manager</a>
+     <p class="navbar-text  navbar-right pull-right">Signed in as <span data-bind="text: userName"></span></p>
+     <button class="btn btn-default navbar-btn navbar-right pull-right" id="logout-btn">Logout</button>
+     <button class="btn btn-default navbar-btn navbar-right pull-right" style="margin-right: 5px;" data-bind="click: save">Save</button>
+    </div>
+  </div>
+</nav>
+  
+  
+  <div class="container">
+        <div class="row">
+            <h1>Welcome, <span data-bind="text: userName"></span>!</h1>      
+        </div>
+        <div class="row">
+            <table class="table table-striped table-hover">
+                <tr>
+                    <th>
+                        Program Name
+                    </th>
+                    <th style="width: 100px;">
+                        Remove
+                    </th>
+                </tr>
+                <tbody data-bind="foreach: programs">
+                    <tr>
+                        <td>
+                            <input type="text" name="" style="width: 100%;" data-bind="value: name, valueUpdate: 'keyup'"/>
+                        </td>
+                        <td>
+                            <button class="btn" data-bind="click: $root.removeProgram">Remove</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn" data-bind="click: addProgram">Add Program</button>
+        </div>
+        <div class="row">
+            <select class="form-control" data-bind="options: programs, selectedOptions: selectedProgram, optionsText: 'name'" style="width: 400px;"></select>
+        </div>
+        <div class="row">
+            <table class="table table-striped table-hover">
+                <tr>
+                    <th>
+                        Student First Name
+                    </th>
+                    <th>
+                        Student Last Name
+                    </th>
+                    <th>
+                        Teacher Last Name
+                    </th>
+                    <th>
+                        Grade
+                    </th>
+                    <th>
+                        Attends ASP
+                    </th>
+                    <th style="width: 100px;">
+                        Remove
+                    </th>
+                </tr>
+                <tbody data-bind="foreach: students">
+                    <tr>
+                        <td>
+                            <input type="text" name="" style="width: 100%;" data-bind="value: firstName, valueUpdate: 'keyup'"/>
+                        </td>
+                        <td>
+                            <input type="text" name="" style="width: 100%;" data-bind="value: lastName, valueUpdate: 'keyup'"/>
+                        </td>
+                        <td>
+                            <select class="form-control input-small" data-bind="options: $root.teachers, value: teacher, optionsText: 'lastName', optionsValue: 'lastName'" style="width: 100%;height: 25px;padding: 0px;"></select>
+                        </td>
+                        <td>
+                            <input type="text" name="" style="width: 100%;" data-bind="value: grade, valueUpdate: 'keyup'"/>
+                        </td>
+                        <td>
+                            <input type="checkbox" name="" style="width: 100%;" data-bind="checked: asp"/>
+                        </td>
+                        <td>
+                            <button class="btn" data-bind="click: $root.removeStudent">Remove</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn" data-bind="click: addStudent">Add Student</button>
+        </div>
+  </div>
+  
+  <style type="text/css">
+        .row{
+            margin-bottom: 20px;
+        }
+  </style>
+  
+  
+  <script type="text/javascript">
+    dpd.users.me(function(user) {
+      if (user) {
+            dp.userId(user.id);
+            dp.userName(user.username);
+      } else {
+        location.href = "/";
+      }
+    });
+    $('#logout-btn').click(function() {
+      dpd.users.logout(function(res, err) {
+        location.href = "/";
+      });
+    });
+    
+    dp = {}
+    dp.userId = ko.observable(""),
+    dp.userName = ko.observable(""),
+    dp.programs = ko.observableArray([]),
+    dp.addProgram = function(){
+        o = {
+            name: "",
+            owner: dp.userId(),
+            students: []
+        }
+        dpd.programs.post(o, function(r, e){
+            if(e){
+                alert(e.message)
+            }else{
+                dp.programs.push(ko.mapping.fromJS(r))
+            }
+        })
+        
+    },
+    dp.removeProgram = function(program){
+        dpd.programs.del(program.id(), function(r, e){
+            if(e){
+                alert(e.message)
+            }else{
+                dp.programs.remove(program)
+            }
+        })
+        dp.programs.remove(program)
+    },
+    dp.selectedProgram = ko.observableArray([])
+    dp.students = ko.observableArray([])
+    dp.studentSwitcher = ko.computed(function(){
+        dp.selectedProgram()
+        if(dp.selectedProgram().length > 0){
+             var s = []
+             for(var i = 0; i < dp.selectedProgram()[0].students().length; i++){
+                 s.push(dp.selectedProgram()[0].students()[i])
+             }
+             dp.students(s)   
+        }else{
+            dp.students([])
+        }
+    }),
+    dp.addStudent = function(){
+        o = {
+            firstName: "",
+            lastName: "",
+            teacher: "",
+            grade: "",
+            asp: false,
+            program: dp.selectedProgram()[0].id(),
+            owner: dp.userId()
+        }
+        dpd.students.post(o, function(r, e){
+            if(e){
+                alert(e.message)
+            }else{
+                var n = ko.mapping.fromJS(r)
+                dp.students.push(n)
+                dp.selectedProgram()[0].students.push(n)
+            }
+        })
+    }
+    dp.removeStudent = function(student){
+        dpd.students.del(student.id(), function(r, e){
+            if(e){
+                alert(e.message)
+            }else{
+                dp.students.remove(student)
+            }
+        })
+    }
+    dp.save = function(){
+        for(var i = 0; i < dp.programs().length; i++){
+            dpd.programs.post(ko.mapping.toJS(dp.programs()[i]), function(r, e){
+                if(e){
+                    alert(e.message)
+                }
+            })
+            for(var j = 0; j < dp.programs()[i].students().length; j++){
+                 dpd.students.post(ko.mapping.toJS(dp.programs()[i].students()[j]), function(r, e){
+                    if(e){
+                        alert(e.message)
+                    }
+                })
+            }
+        }
+    }
+    dp.teachers = ko.observableArray([])
+    
+    dpd.programs.get(function(r, e){
+        if(e){
+            alert(e.message)
+        }else{
+            var s = ko.mapping.fromJS(r)()
+            for(var i = 0; i < s.length; i++){
+                dp.programs.push(s[i])
+            }
+        }
+    })
+    
+    dpd.teachers.get(function(r, e){
+        if(e){
+            alert(e.message)
+        }else{
+            dp.teachers(r)
+        }
+    })
+    
+    ko.applyBindings(dp);
+  </script>
+</body>
+</html>

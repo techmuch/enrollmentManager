@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout/3.4.0/knockout.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout.mapping/2.4.1/knockout.mapping-latest.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="dpd.js"></script>
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+</head>
+<body>
+ 
+ 
+ <div class="container" style="height: 100%; position: absolute;">
+    <div class="row" style="top: 25%; position: relative;">
+        <div class="col-md-offset-6 col-md-4">
+            <div class="form-login">
+            <h4>Welcome</h4>
+            <input type="text" id="userName" class="form-control input-sm chat-input" placeholder="username" />
+            </br>
+            <input type="text" id="userPassword" class="form-control input-sm chat-input" placeholder="password" />
+            </br>
+            <div class="wrapper">
+            <span class="group-btn">     
+                <a href="#" class="btn btn-primary btn-md" onclick="login()">login <i class="fa fa-sign-in"></i></a>
+            </span>
+            </div>
+            </div>
+        
+        </div>
+    </div>
+</div>
+
+
+  <script type="text/javascript">
+    switcher = function(user){
+      if (user) {
+      	if (user.type === 'admin'){
+      		location.href = "/admin.html";
+      	}
+      	if (user.type === 'teacher'){
+      		location.href = "/class.html";
+      	}
+      	if (user.type === 'program'){
+      		location.href = "/programs.html";
+      	}
+      }
+    }
+    dpd.users.me(function(user) {
+      switcher(user);
+    });
+    
+    function login(){
+      var username = $('#userName').val();
+      var password = $('#userPassword').val();
+      dpd.users.login({username: username, password: password}, function(session, error) {
+        if (error) {
+          alert(error.message);
+        } else {
+          dpd.users.me(switcher)
+        }
+      });
+      return false;
+    }
+    
+    $("#userName").keyup(function (e) {
+        if (e.keyCode == 13) {
+            login()
+        }
+    });
+    
+    $("#userPassword").keyup(function (e) {
+        if (e.keyCode == 13) {
+            login()
+        }
+    });
+  </script>
+</body>
+</html>
