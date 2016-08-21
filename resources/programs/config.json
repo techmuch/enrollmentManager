@@ -24,6 +24,62 @@
 			"required": false,
 			"id": "description",
 			"order": 2
+		},
+		"monday": {
+			"name": "monday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "monday",
+			"order": 3
+		},
+		"tuesday": {
+			"name": "tuesday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "tuesday",
+			"order": 4
+		},
+		"wednesday": {
+			"name": "wednesday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "wednesday",
+			"order": 5
+		},
+		"thursday": {
+			"name": "thursday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "thursday",
+			"order": 6
+		},
+		"friday": {
+			"name": "friday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "friday",
+			"order": 7
+		},
+		"saturday": {
+			"name": "saturday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "saturday",
+			"order": 8
+		},
+		"sunday": {
+			"name": "sunday",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "sunday",
+			"order": 9
 		}
 	}
 }
