@@ -38,10 +38,10 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-6">
-                        <select class="form-control" data-bind="options: teachers, selectedOptions: selectedTeacher, optionsText: 'lastName', optionsValue: 'lastName'" style="width: 400px;"></select>    
+                        <select class="form-control" data-bind="options: teachers, selectedOptions: selectedTeacher, optionsText: 'nameAndGrade', optionsValue: 'id'" style="width: 100%;"></select>    
                     </div>
                     <div class="col-xs-6">
-                        <select class="form-control" data-bind="options: teachers, selectedOptions: selectedTeacher, optionsText: 'lastName', optionsValue: 'lastName'" style="width: 400px;"></select>
+                        <select class="form-control" data-bind="options: days, selectedOptions: selectedDay" style="width: 100%;"></select>
                     </div>
                     
                 </div>
@@ -55,7 +55,7 @@
                                 Student Last Name
                             </th>
                             <th>
-                                Teacher Last Name
+                                Teacher
                             </th>
                             <th>
                                 Program
@@ -64,19 +64,19 @@
                                 Attends ASP
                             </th>
                         </tr>
-                        <tbody data-bind="foreach: students">
+                        <tbody data-bind="foreach: filteredStudents">
                             <tr>
                                 <td>
-                                    <span data-bind="value: firstName"></span>
+                                    <span data-bind="text: firstName"></span>
                                 </td>
                                 <td>
-                                    <span data-bind="value: lastName"></span>
+                                    <span data-bind="text: lastName"></span>
                                 </td>
                                 <td>
-                                    <span data-bind="text: teacher"></span>
+                                    <span data-bind="text: teacherNameAndGrade"></span>
                                 </td>
                                 <td>
-                                    <span data-bind="text: program"></span>
+                                    <span data-bind="text: programNameAndDesc"></span>
                                 </td>
                                 <td>
                                     <input type="checkbox" name="" style="width: 100%;" data-bind="checked: asp" disabled/>
@@ -111,123 +111,57 @@
     });
     
     dp = {}
-    dp.userId = ko.observable(""),
-    dp.userName = ko.observable(""),
-    dp.users = ko.observableArray([])
-    dp.programs = ko.observableArray([]),
-    dp.addProgram = function(){
-        o = {
-            name: "",
-            owner: dp.userId(),
-            students: []
-        }
-        dpd.programs.post(o, function(r, e){
-            if(e){
-                alert(e.message)
-            }else{
-                dp.programs.push(ko.mapping.fromJS(r))
-            }
-        })
-        
-    },
-    dp.removeProgram = function(program){
-        dpd.programs.del(program.id(), function(r, e){
-            if(e){
-                alert(e.message)
-            }else{
-                dp.programs.remove(program)
-            }
-        })
-        dp.programs.remove(program)
-    },
-    dp.selectedProgram = ko.observableArray([])
-    dp.students = ko.observableArray([])
-    // dp.studentSwitcher = ko.computed(function(){
-    //     dp.selectedProgram()
-    //     if(dp.selectedProgram().length > 0){
-    //         var s = []
-    //         for(var i = 0; i < dp.selectedProgram()[0].students().length; i++){
-    //             s.push(dp.selectedProgram()[0].students()[i])
-    //         }
-    //         dp.students(s)   
-    //     }else{
-    //         dp.students([])
-    //     }
-    // }),
-    dp.addStudent = function(){
-        o = {
-            firstName: "",
-            lastName: "",
-            teacher: "",
-            grade: "",
-            asp: false,
-            program: dp.selectedProgram()[0].id(),
-            owner: dp.userId()
-        }
-        dpd.students.post(o, function(r, e){
-            if(e){
-                alert(e.message)
-            }else{
-                var n = ko.mapping.fromJS(r)
-                dp.students.push(n)
-                dp.selectedProgram()[0].students.push(n)
-            }
-        })
-    }
-    dp.removeStudent = function(student){
-        dpd.students.del(student.id(), function(r, e){
-            if(e){
-                alert(e.message)
-            }else{
-                dp.students.remove(student)
-            }
-        })
-    }
-    dp.save = function(){
-        for(var i = 0; i < dp.programs().length; i++){
-            dpd.programs.post(ko.mapping.toJS(dp.programs()[i]), function(r, e){
-                if(e){
-                    alert(e.message)
-                }
-            })
-            for(var j = 0; j < dp.programs()[i].students().length; j++){
-                 dpd.students.post(ko.mapping.toJS(dp.programs()[i].students()[j]), function(r, e){
-                    if(e){
-                        alert(e.message)
-                    }
-                })
-            }
-        }
-    }
-    dp.teachers = ko.observableArray([])
+    dp.days = ko.observableArray([
+            'All',
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday'
+        ]);
+    dp.selectedDay = ko.observable('All');
+    dp.userId = ko.observable("")
+    dp.userName = ko.observable("")
+    dp.students = ko.observableArray([]);
+    dp.teachers = ko.observableArray([]);
+    dp.selectedTeacher = ko.observable('');
     
-    dpd.programs.get(function(r, e){
-        if(e){
-            alert(e.message)
-        }else{
-            var s = ko.mapping.fromJS(r)()
-            for(var i = 0; i < s.length; i++){
-                dp.programs.push(s[i])
+    dp.filteredStudents = ko.computed(function(){
+        
+        return _.filter(dp.students(), function(student) {
+            if(dp.selectedDay()[0] === 'Monday' && student.monday() === false){
+                return false
             }
-        }
+            if(dp.selectedDay()[0] === 'Tuesday' && student.tuesday() === false){
+                return false
+            }
+            if(dp.selectedDay()[0] === 'Wednesday' && student.wednesday() === false){
+                return false
+            }
+            if(dp.selectedDay()[0] === 'Thursday' && student.thursday() === false){
+                return false
+            }
+            if(dp.selectedDay()[0] === 'Friday' && student.friday() === false){
+                return false
+            }
+            if(dp.selectedDay()[0] === 'Saturday' && student.saturday() === false){
+                return false
+            }
+            if(dp.selectedDay()[0] === 'Sunday' && student.sunday() === false){
+                return false
+            }
+            return (student.teacher() === dp.selectedTeacher()[0] || dp.selectedTeacher()[0] === 'All')
+        });
     })
     
     dpd.teachers.get(function(r, e){
         if(e){
             alert(e.message)
         }else{
-            dp.teachers(r)
-        }
-    })
-    
-    dpd.users.get(function(r, e){
-        if(e){
-            alert(e.message)
-        }else{
-            var s = ko.mapping.fromJS(r)()
-            for(var i = 0; i < s.length; i++){
-                dp.users.push(s[i])
-            }
+            r.unshift({id:'All', nameAndGrade: 'All', lastName: 'AAA'})
+            dp.teachers(_.sortBy(r,'lastName'))
         }
     })
     

@@ -287,22 +287,21 @@
     }
     dp.teachers = ko.observableArray([])
     
-    dpd.programs.get(function(r, e){
-        if(e){
-            alert(e.message)
-        }else{
-            var s = ko.mapping.fromJS(r)()
-            for(var i = 0; i < s.length; i++){
-                dp.programs.push(s[i])
-            }
-        }
-    })
-    
     dpd.teachers.get(function(r, e){
         if(e){
             alert(e.message)
         }else{
-            dp.teachers(r)
+            dp.teachers(_.sortBy(r, 'lastName'))
+            dpd.programs.get(function(r, e){
+                if(e){
+                    alert(e.message)
+                }else{
+                    var s = ko.mapping.fromJS(r)()
+                    for(var i = 0; i < s.length; i++){
+                        dp.programs.push(s[i])
+                    }
+                }
+            })
         }
     })
     
