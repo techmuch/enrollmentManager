@@ -1,0 +1,1 @@
+this.nameAndGrade = this.lastName + '   [ Grade: ' + this.grade + ' ]';

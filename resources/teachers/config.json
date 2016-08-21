@@ -8,6 +8,14 @@
 			"required": true,
 			"id": "lastName",
 			"order": 0
+		},
+		"grade": {
+			"name": "grade",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "grade",
+			"order": 1
 		}
 	}
 }

@@ -5,13 +5,14 @@
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout/3.4.0/knockout.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/knockout.mapping/2.4.1/knockout.mapping-latest.js"></script>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/filesaver.js/0.2/FileSaver.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="dpd.js"></script>
 	
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
 </head>
 <body>
-    <nav class="navbar navbar-default navbar-static-top">
+    <nav class="navbar navbar-default navbar-static-top navbar-fixed-top">
   <div class="container-fluid">
     <div class="navbar-header" style="width: 100%; padding-right: 20px;">
      <a class="navbar-brand" href="#">Enrollment Manager</a>
@@ -25,7 +26,7 @@
   
     <div class="container">
         <div class="row">
-            <h1>Welcome, <span data-bind="text: userName"></span>!</h1>      
+            <h1>Welcome <span data-bind="text: userName"></span>!</h1>      
         </div>
         
           <!-- Nav tabs -->
@@ -83,6 +84,9 @@
                             <th>
                                 Last Name
                             </th>
+                            <th>
+                                Grade
+                            </th>
                             <th style="width: 100px;">
                                 Remove
                             </th>
@@ -91,6 +95,9 @@
                             <tr>
                                 <td>
                                     <input type="text" name="" style="width: 100%;" data-bind="value: lastName, valueUpdate: 'keyup'"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="" style="width: 100%;" data-bind="value: grade, valueUpdate: 'keyup'"/>
                                 </td>
                                 <td>
                                     <button class="btn" data-bind="click: $root.removeProgram">Remove</button>
@@ -143,7 +150,7 @@
                     <h3>Filter by Teacher</h3>
                 </div>
                 <div class="row">    
-                    <select class="form-control" data-bind="options: teachers, selectedOptions: selectedTeacher, optionsText: 'lastName', optionsValue: 'lastName'" style="width: 400px;"></select>
+                    <select class="form-control" data-bind="options: teachers, selectedOptions: selectedTeacher, optionsText: 'nameAndGrade', optionsValue: 'lastName'" style="width: 400px;"></select>
                 </div>
                 <div class="row">
                     <table class="table table-striped table-hover">
@@ -194,16 +201,26 @@
                 </div>
                 </div>
           </div>
-            <div role="tabpanel" class="tab-pane" id="backuprestore">...</div>
+            <div role="tabpanel" class="tab-pane" id="backuprestore">
+                <div class="row">
+                    <h4>Download Database Backup</h4>
+                    <a class="btn btn-default" href = "#" id = "save" download="database.json">Save</a>
+                </div>
+                <div class="row">
+                    Load Database from file <input type="file" id="load"  class="btn btn-default"/>
+                </div>
+                <div class="row">
+                    Restore Database from file <input type="file" id="restore"  class="btn btn-default"/>
+                </div>
+            </div>
           </div>
           
     </div>
   
     <style type="text/css">
-        .row{
-            margin-bottom: 20px;
-        }
-  </style>
+        body { padding-top: 70px; }
+        .row{ margin-bottom: 20px; }
+    </style>
   
   
   <script type="text/javascript">
@@ -220,12 +237,34 @@
         location.href = "/";
       });
     });
+    $( "#save" ).click(function( event ) {
+        this.href = 'data:plain/text,' + JSON.stringify({
+            users: ko.mapping.toJS(dp.users),
+            teachers: ko.mapping.toJS(dp.teachers),
+            programs: ko.mapping.toJS(dp.programs),
+            students: ko.mapping.toJS(dp.students)
+        })
+    });
+    $( "#load" ).change(function( event ) {
+        var fr = new FileReader();
+        fr.onload = function(){
+            dp.database(JSON.parse(this.result))
+        }
+        fr.readAsText(this.files[0]);    
+    });
+     $( "#restore" ).change(function( event ) {
+        var fr = new FileReader();
+        fr.onload = function(){
+            dp.database(JSON.parse(this.result))
+        }
+        fr.readAsText(this.files[0]);    
+    });
     
-    dp = {}
-    dp.userId = ko.observable(""),
-    dp.userName = ko.observable(""),
-    dp.users = ko.observableArray([])
-    dp.programs = ko.observableArray([]),
+    dp = {};
+    dp.userId = ko.observable("");
+    dp.userName = ko.observable("");
+    dp.users = ko.observableArray([]);
+    dp.programs = ko.observableArray([]);
     dp.addProgram = function(){
         o = {
             name: "",
@@ -240,7 +279,7 @@
             }
         })
         
-    },
+    };
     dp.removeProgram = function(program){
         dpd.programs.del(program.id(), function(r, e){
             if(e){
@@ -250,9 +289,9 @@
             }
         })
         dp.programs.remove(program)
-    },
-    dp.selectedProgram = ko.observableArray([])
-    dp.students = ko.observableArray([])
+    };
+    dp.selectedProgram = ko.observableArray([]);
+    dp.students = ko.observableArray([]);
     // dp.studentSwitcher = ko.computed(function(){
     //     dp.selectedProgram()
     //     if(dp.selectedProgram().length > 0){
@@ -284,7 +323,7 @@
                 dp.selectedProgram()[0].students.push(n)
             }
         })
-    }
+    };
     dp.removeStudent = function(student){
         dpd.students.del(student.id(), function(r, e){
             if(e){
@@ -293,7 +332,7 @@
                 dp.students.remove(student)
             }
         })
-    }
+    };
     dp.save = function(){
         for(var i = 0; i < dp.programs().length; i++){
             dpd.programs.post(ko.mapping.toJS(dp.programs()[i]), function(r, e){
@@ -309,8 +348,9 @@
                 })
             }
         }
-    }
-    dp.teachers = ko.observableArray([])
+    };
+    dp.teachers = ko.observableArray([]);
+    dp.database = ko.observable({});
     
     dpd.programs.get(function(r, e){
         if(e){
@@ -321,26 +361,27 @@
                 dp.programs.push(s[i])
             }
         }
-    })
+    });
     
     dpd.teachers.get(function(r, e){
         if(e){
-            alert(e.message)
+            alert(e.message);
         }else{
-            dp.teachers(r)
+            dp.teachers(_.sortBy(r, 'lastName'));
         }
-    })
+    });
     
     dpd.users.get(function(r, e){
         if(e){
             alert(e.message)
         }else{
-            var s = ko.mapping.fromJS(r)()
+            var s = ko.mapping.fromJS(_.sortBy(r, 'username'))();
             for(var i = 0; i < s.length; i++){
-                dp.users.push(s[i])
+                s[i].password = ko.observable("...");
+                dp.users.push(s[i]);
             }
         }
-    })
+    });
     
     dpd.students.get(function(r, e){
         if(e){
@@ -351,7 +392,7 @@
                 dp.students.push(s[i])
             }
         }
-    })
+    });
     
     ko.applyBindings(dp);
   </script>
